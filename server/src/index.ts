@@ -79,6 +79,31 @@ app.put("/todos/:id", async (req, res) => {
     }
 }); 
 
+// update todo complete
+app.patch("/todos/:id", async (req, res) => {
+    const { id } = req.params;
+    console.log("req:", req.params)
+    try {
+        const data = await prisma.todo.update({
+            where: {
+                id: Number(id)
+            },
+            data: {
+                isComplete: true
+            }
+        })
+        res.json({
+            todos: data
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Something went wrong!"
+        })
+    }
+}); 
+
+// delete todo
 app.delete("/todos/:id", async (req, res) => {
     const { id } = req.params;
     console.log("req:", req.params)

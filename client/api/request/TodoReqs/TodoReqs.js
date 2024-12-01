@@ -24,6 +24,16 @@ export async function addTodosReq(action) {
         })
 }
 
+export async function completeTodoReq(action) {
+    return axios.patch(`http://localhost:3000/todos/${action?.data?.id}`)
+        .then(response => {
+            return response;
+        }).catch((errors) => {
+            console.log("errors", errors);
+            return errors
+        })
+}
+
 export async function deletTodoReq(action) {
     return axios.delete(`http://localhost:3000/todos/${action?.data?.id}`)
         .then(response => {

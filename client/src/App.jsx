@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Formik } from "formik";
 import { useDispatch, useSelector } from "react-redux"
-import { addTodo, deleteTodo, getAllTodos } from '../redux/actions/TodoActions/TodoAction';
+import { addTodo, completeTodo, deleteTodo, getAllTodos } from '../redux/actions/TodoActions/TodoAction';
 
 export default function App() {
   const dispatch = useDispatch();
@@ -15,6 +15,15 @@ export default function App() {
       resetForm();
       // const data = await axios.post("http://localhost:3000/todos", { title: values.title, description: values.description })
       // setTodos((todo) => [...todo, data.data.todos])
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const handleComplete = async (id) => {
+    console.log("id:", id)
+    try {
+      dispatch(completeTodo({ id }))
     } catch (error) {
       console.log(error);
     }
@@ -71,7 +80,6 @@ export default function App() {
           </div>
         )}
       </Formik>
-      {JSON.stringify(getTodos)}
       <div className="w-full max-w-md p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
         <div className="flow-root">
           {loading ? (
@@ -82,17 +90,23 @@ export default function App() {
                 <li key={todo.id} className="py-3 sm:py-4">
                   <div className="flex items-center">
                     <div className="flex-1 min-w-0 ms-4">
-                      <p className="text-sm font-medium text-gray-900 truncate dark:text-white">
+                      <p className={`text-sm font-medium text-gray-900 truncate ${todo?.isComplete ? "dark:text-gray-600 line-through " : "dark:text-white"}`}>
                         {todo?.title}
                       </p>
-                      <p className="text-sm text-gray-500 truncate dark:text-gray-400">
+                      <p className={`text-sm text-gray-500 truncate  ${todo?.isComplete ? "dark:text-gray-600 line-through " : "dark:text-white"}`}>
                         {todo?.description}
                       </p>
                     </div>
-                    <div className="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                    <div className="inline-flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
+                      {!todo?.isComplete &&
+                        <button type="button" onClick={() => handleComplete(todo?.id)}
+                          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                          Complete
+                        </button>
+                      }
                       <button type="button" onClick={() => handleDelete(todo?.id)}
                         className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        delete
+                        Delete
                       </button>
                     </div>
                   </div>

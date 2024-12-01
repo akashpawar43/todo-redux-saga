@@ -13,6 +13,13 @@ export function addTodo(data) {
     }
 }
 
+export function completeTodo(data) {
+    return {
+        type: types.COMPLETE_TODOS,
+        data
+    }
+}
+
 export function deleteTodo(data) {
     return {
         type: types.DELETE_TODOS,
