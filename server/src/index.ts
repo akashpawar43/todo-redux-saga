@@ -1,5 +1,6 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
+import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
@@ -13,6 +14,21 @@ app.get("/", (req, res) => {
         message: "Health Check"
     })
 })
+
+// Zod schemas for validation
+const todoSchema = z.object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().min(1, "Description is required")
+});
+
+const updateTodoSchema = z.object({
+    title: z.string().min(1, "Title is required").optional(),
+    description: z.string().optional()
+});
+
+const idTodoSchema = z.object({
+    id: z.string().uuid()
+});
 
 // get all todos
 app.get("/todos", async (req, res) => {
@@ -32,33 +48,43 @@ app.get("/todos", async (req, res) => {
 
 // add todo
 app.post("/todos", async (req, res) => {
-    const { title, description } = req.body;
-    console.log("req:", req.body)
     try {
+        const parseResult = todoSchema.safeParse(req.body);
+        if (!parseResult.success) {
+            return res.status(400).json({ errors: parseResult.error });
+        }
+        const { title, description } = req.body;
         const data = await prisma.todo.create({
             data: {
                 title,
                 description
             }
-        })
-        res.json({
-            todos: data
-        })
+        });
+        res.status(201).json(data);
     } catch (error) {
         console.log(error);
-        res.status(500).json({
-            message: "Something went wrong!"
-        })
+        res.status(500).json({ message: "Something went wrong!" });
+        // if (error instanceof z.ZodError) {
+        //     res.status(400).json({ errors: error.errors });
+        // } else {
+        //     res.status(500).json({ message: "Something went wrong!" });
+        // }
     }
 });
 
 // update todo
 app.put("/todos/:id", async (req, res) => {
-    const { title, description } = req.body;
-    const { id } = req.params;
-    console.log("req:", req.params)
-    console.log("req:", req.body)
     try {
+        const parseResult = updateTodoSchema.safeParse(req.body);
+        if (!parseResult.success) {
+            return res.status(400).json({ errors: parseResult.error });
+        }
+        const parseIdResult = idTodoSchema.safeParse(req.params);
+        if (!parseIdResult.success) {
+            return res.status(400).json({ errors: parseIdResult.error });
+        }
+        const { title, description } = req.body;
+        const { id } = req.params;
         const data = await prisma.todo.update({
             where: {
                 id: Number(id)
@@ -73,17 +99,18 @@ app.put("/todos/:id", async (req, res) => {
         })
     } catch (error) {
         console.log(error);
-        res.status(500).json({
-            message: "Something went wrong!"
-        })
+        res.status(500).json({ message: "Something went wrong!" });
     }
-}); 
+});
 
 // update todo complete
 app.patch("/todos/:id", async (req, res) => {
-    const { id } = req.params;
-    console.log("req:", req.params)
     try {
+        const parseIdResult = idTodoSchema.safeParse(req.params);
+        if (!parseIdResult.success) {
+            return res.status(400).json({ errors: parseIdResult.error });
+        }
+        const { id } = req.params;
         const data = await prisma.todo.update({
             where: {
                 id: Number(id)
@@ -97,17 +124,18 @@ app.patch("/todos/:id", async (req, res) => {
         })
     } catch (error) {
         console.log(error);
-        res.status(500).json({
-            message: "Something went wrong!"
-        })
+        res.status(500).json({ message: "Something went wrong!" });
     }
-}); 
+});
 
 // delete todo
 app.delete("/todos/:id", async (req, res) => {
-    const { id } = req.params;
-    console.log("req:", req.params)
     try {
+        const parseIdResult = idTodoSchema.safeParse(req.params);
+        if (!parseIdResult.success) {
+            return res.status(400).json({ errors: parseIdResult.error });
+        }
+        const { id } = req.params;
         const data = await prisma.todo.delete({
             where: {
                 id: Number(id)
@@ -118,10 +146,8 @@ app.delete("/todos/:id", async (req, res) => {
         })
     } catch (error) {
         console.log(error);
-        res.status(500).json({
-            message: "Something went wrong!"
-        })
+        res.status(500).json({ message: "Something went wrong!" });
     }
-}); 
+});
 
 app.listen(3000);
